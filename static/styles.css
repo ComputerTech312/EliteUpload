@@ -40,6 +40,7 @@ input[type="submit"]:hover {
     background-color: #218838;
 }
 
+.register-form,
 .login-form {
 	position:relative;
 	display:block;
@@ -73,4 +74,5 @@ input[type="submit"]:hover {
   border: 1px solid #ccc;
 }
 
+.register-form h3,
 .login-form h3 {text-align:center;}
