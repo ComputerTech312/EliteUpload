@@ -35,7 +35,7 @@ def load_user(user_id):
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    return render_template('login')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -45,7 +45,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('login'))
         else:
             return abort(401)
     else:
@@ -87,4 +87,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         create_admin()
-    app.run(debug=True, host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'))
+app.run(debug=True, host='0.0.0.0', port=5000, ssl_context=('cert.pem', 'key.pem'))
