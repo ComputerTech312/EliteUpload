@@ -49,7 +49,7 @@ def login():
         else:
             return abort(401)
     else:
-        return render_template('login.html')
+        return render_template('index.html')
 
 @app.route("/logout")
 @login_required
