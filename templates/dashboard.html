@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <a href="/" style="position: absolute; top: 10px; left: 10px; font-size: 20px; text-decoration: none;">EliteUpload</a>
+
+    <h1>Dashboard</h1>
+    <p>Welcome, {{ name }}!</p>
+    <a href="/logout">Logout</a>
+
+    <!-- Change password section visible to all users -->
+    <h2>Change Password</h2>
+    <form action="/change_password" method="post">
+        <input type="password" name="old_password" placeholder="Old Password" required>
+        <input type="password" name="new_password" placeholder="New Password" required>
+        <input type="submit" value="Change Password">
+    </form>
+
+    <!-- Add/Delete user section visible only if user is admin -->
+    {% if is_admin %}
+        <h2>Add User</h2>
+        <form action="/add_user" method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="submit" value="Add User">
+        </form>
+
+        <h2>Delete User</h2>
+        <form action="/delete_user" method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="submit" value="Delete User">
+        </form>
+
+        <h2>All Users</h2>
+        <ul>
+            {% for user in users %}
+                <li class="user-item">
+                    <span>{{ user.username }}</span>
+                    {% if user.username != admin_username %}
+                        <form action="/delete_user" method="post" class="inline-form">
+                            <input type="hidden" name="username" value="{{ user.username }}">
+                            <input type="submit" value="X" class="delete-button">
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+    {% endif %}
+
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Add more dashboard content here as needed -->
+</body>
+</html>

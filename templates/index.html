@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Sharing Service</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <a href="/" style="position: absolute; top: 10px; left: 10px; font-size: 20px; text-decoration: none;">EliteUpload</a>
+
+    <h1>Welcome to the File Sharing Service</h1>
+    {% if current_user.is_authenticated %}
+        <p>Hi, {{ current_user.username }}!</p>
+        <a href="/dashboard">Control Panel</a>
+        <a href="/logout">Logout</a>
+
+        <h2>Upload File</h2>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <select name="expiry_time">
+                <option value="burnable">Burn after reading</option>
+                <option value="5">5 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="1440">1 day</option>
+                <option value="10080">1 week</option>
+                <option value="43200">1 month</option>
+                <option value="525600">1 year</option>
+                <option value="none">No expiry</option>
+            </select>
+            <input type="submit" value="Upload">
+        </form>
+
+        <!-- Display flash messages -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul>
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message|safe }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+    {% else %}
+        <a href="/login">Login</a>
+    {% endif %}
+</body>
+</html>

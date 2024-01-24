@@ -1,0 +1,8 @@
+{
+    "SECRET_KEY": "YourSecretKey",
+    "SQLALCHEMY_DATABASE_URI": "sqlite:///db.sqlite",
+    "UPLOAD_FOLDER": "uploads",
+    "ENABLE_PUBLIC_REGISTRATION": false,
+    "DEFAULT_ADMIN_USERNAME": "admin",
+    "DEFAULT_ADMIN_PASSWORD": "adminpassword"
+}
