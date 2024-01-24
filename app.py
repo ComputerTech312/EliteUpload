@@ -12,6 +12,7 @@ app = Flask(__name__)
 # Load configuration from config.json
 with open('config.json') as config_file:
      app.config.update(json.load(config_file))
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
 db = SQLAlchemy(app)
