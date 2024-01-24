@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, send_from_directory, current_app, abort
+from flask import Flask, request, render_template, redirect, url_for, flash, send_from_directory, current_app, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -11,7 +11,8 @@ app = Flask(__name__)
 
 # Load configuration from config.json
 with open('config.json') as config_file:
-    app.config.update(json.load(config_file))
+     app.config.update(json.load(config_file))
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -61,7 +62,8 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-            login_user(user)
+            login_user(user, remember=True)
+            session.permanent = True  # make the session permanent
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password')
