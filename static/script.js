@@ -1,32 +1,27 @@
 document.getElementById('upload-form').addEventListener('submit', function(event) {
     event.preventDefault();
     var formData = new FormData(this);
-    var uploadURL = document.getElementById('upload-url');
-    uploadURL.textContent = 'Uploading...';
+    var uploadURL = '/upload'; // Update this to your upload URL
 
-    var progressBar = document.getElementById('progress-bar'); // Assuming you have a progress bar element
+    var progressBar = document.getElementById('progress-bar');
 
-    fetch('/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        const reader = response.body.getReader();
-        const totalLength = +response.headers.get('Content-Length');
+    var request = new XMLHttpRequest();
+    request.open('POST', uploadURL, true);
 
-        reader.read().then(function process({done, value}) {
-            if (done) {
-                return uploadURL.innerHTML = 'File URL: <a href="' + data + '" target="_blank">' + data + '</a>';
-            }
+    request.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            var percentComplete = (e.loaded / e.total) * 100;
+            progressBar.style.width = percentComplete + '%';
+        }
+    };
 
-            progressBar.value += value.length;
-            progressBar.max = totalLength;
+    request.upload.onloadstart = function(e) {
+        progressBar.style.width = '0%';
+    };
 
-            return reader.read().then(process);
-        });
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        uploadURL.textContent = 'Error uploading file.';
-    });
+    request.upload.onloadend = function(e) {
+        progressBar.style.width = '100%';
+    };
+
+    request.send(formData);
 });

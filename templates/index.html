@@ -27,8 +27,10 @@
                 <option value="525600">1 year</option>
             </select>
             <input type="submit" value="Upload">
-            <!-- Progress bar -->
-            <progress id="progress-bar" value="0" max="100"></progress>
+            <!-- Custom progress bar -->
+            <div id="progress-bar-container" style="width: 100%; background-color: #f3f3f3;">
+                <div id="progress-bar" style="height: 24px; width: 0%; background-color: #4caf50;"></div>
+            </div>
         </form>
 
         <!-- Display flash messages -->
@@ -46,5 +48,6 @@
     {% else %}
         <a href="/login">Login</a>
     {% endif %}
+    <script src="script.js"></script>
 </body>
 </html>
