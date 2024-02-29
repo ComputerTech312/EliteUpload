@@ -121,11 +121,11 @@ def upload_file():
         file_url = url_for('uploaded_file', filename=filename, _external=True)
 
         expiry_option = request.form.get('expiry_time')
-        expiry_time = None
-        if expiry_option == 'burnable':
-            expiry_time = None  # don't expire until first access
-        else:
-            expiry_time = datetime.utcnow() + timedelta(minutes=int(expiry_option))
+        try:
+            expiry_minutes = int(expiry_option)
+        except (TypeError, ValueError):
+            expiry_minutes = 60  # default to 60 minutes if expiry_option is not a valid number
+        expiry_time = datetime.utcnow() + timedelta(minutes=expiry_minutes)
 
         # Create a new upload record associated with the current user
         new_upload = Upload(filename=filename, user_id=current_user.id, expiry_time=expiry_time)
@@ -134,20 +134,16 @@ def upload_file():
 
         flash(f'File uploaded successfully: <a href="{file_url}">{filename}</a>', 'success')
         return redirect(url_for('index'))
-    
+
 @app.route('/<filename>')
 def uploaded_file(filename):
     upload = Upload.query.filter_by(filename=filename).first_or_404()
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    if upload.expiry_time is None:
-        upload.expiry_time = datetime.utcnow()  # expire now
-        db.session.commit()
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-    elif datetime.utcnow() > upload.expiry_time:
-        db.session.delete(upload)
-        db.session.commit()
+    if upload.expiry_time and datetime.utcnow() > upload.expiry_time:
         if os.path.exists(filepath):
             os.remove(filepath)  # delete the file from the filesystem
+        db.session.delete(upload)
+        db.session.commit()
         abort(404)  # file has expired
     else:
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

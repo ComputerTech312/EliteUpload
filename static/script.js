@@ -1,17 +1,36 @@
-document.getElementById('upload-form').addEventListener('submit', function(event) {
-    event.preventDefault();
+window.onload = function() {
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    var fileInput = document.getElementById('file-input');
-    var file = fileInput.files[0];
-    var formData = new FormData();
-    formData.append('file', file);
+        var form = e.target;
+        var xhr = new XMLHttpRequest();
+        var formData = new FormData(form);
 
-    var request = new XMLHttpRequest();
-    request.open('POST', '/upload', true);
+        xhr.open(form.method, form.action);
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var percentComplete = (e.loaded / e.total) * 100;
+                var progressBar = document.getElementById('progress-bar');
 
-    request.onerror = function() {
-        console.log('Error: ', request.statusText);
-    };
+                progressBar.style.width = percentComplete + '%';
+                progressBar.textContent = percentComplete + '%';
+            }
+        });
 
-    request.send(formData);
-});
+        // Add an event listener for the 'load' event
+        xhr.addEventListener('load', function() {
+            if (xhr.status >= 200 && xhr.status < 400) {
+                // The request has been completed successfully
+                var response = JSON.parse(xhr.responseText);
+
+                // Display the file URL
+                alert('File uploaded successfully. URL: ' + response.file_url);
+            } else {
+                // There was an error with the request
+                alert('An error occurred during the file upload.');
+            }
+        });
+
+        xhr.send(formData);
+    });
+};
