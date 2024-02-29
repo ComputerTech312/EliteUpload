@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
 import json
+import logging
 
 app = Flask(__name__)
 
@@ -104,6 +105,11 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', '.py'}
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/upload', methods=['POST'])
 @login_required
 def upload_file():
@@ -114,8 +120,12 @@ def upload_file():
     if file.filename == '':
         flash('No selected file')
         return redirect(url_for('index'))
-    if file:
+    if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
+        # Check if file already exists
+        if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+            flash('A file with this name already exists.')
+            return redirect(url_for('index'))
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         file_url = url_for('uploaded_file', filename=filename, _external=True)
@@ -123,8 +133,11 @@ def upload_file():
         expiry_option = request.form.get('expiry_time')
         try:
             expiry_minutes = int(expiry_option)
+            if expiry_minutes <= 0:
+                raise ValueError
         except (TypeError, ValueError):
-            expiry_minutes = 60  # default to 60 minutes if expiry_option is not a valid number
+            flash('Invalid expiry time. Please enter a positive integer.')
+            return redirect(url_for('index'))
         expiry_time = datetime.utcnow() + timedelta(minutes=expiry_minutes)
 
         # Create a new upload record associated with the current user
@@ -132,12 +145,18 @@ def upload_file():
         db.session.add(new_upload)
         db.session.commit()
 
+        logging.info(f'File {filename} uploaded by user {current_user.id} with expiry time: {expiry_time}')
+
         flash(f'File uploaded successfully: <a href="{file_url}">{filename}</a>', 'success')
         return redirect(url_for('index'))
+    else:
+        flash('Invalid file type.')
+        return redirect(url_for('index'))  # Add this line
 
 @app.route('/<filename>')
+@login_required
 def uploaded_file(filename):
-    upload = Upload.query.filter_by(filename=filename).first_or_404()
+    upload = Upload.query.filter_by(filename=filename, user_id=current_user.id).first_or_404()
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     if upload.expiry_time and datetime.utcnow() > upload.expiry_time:
         if os.path.exists(filepath):
@@ -146,6 +165,7 @@ def uploaded_file(filename):
         db.session.commit()
         abort(404)  # file has expired
     else:
+        logging.info(f'File {filename} accessed by user {current_user.id}')
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/add_user', methods=['POST'])
