@@ -68,8 +68,7 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password')
-    enable_public_registration = app.config.get('ENABLE_PUBLIC_REGISTRATION', False)
-    return render_template('login.html', enable_public_registration=enable_public_registration)
+    return render_template('login.html')
 
 @app.route('/change_password', methods=['POST'])
 @login_required
